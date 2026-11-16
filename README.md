@@ -40,7 +40,7 @@ xattr -dr com.apple.quarantine /Applications/Parchment.app
 ### Linux
 
 ```
-sudo apt install ./src-tauri/target/release/bundle/deb/Parchment_1.2.0_amd64.deb
+sudo apt install ./src-tauri/target/release/bundle/deb/Parchment_1.3.0_amd64.deb
 ```
 
 The package depends on `libwebkit2gtk-4.1-0` and `libgtk-3-0`. Ubuntu 24.04 and Pop!_OS 24.04 include them. The package registers Parchment for `text/markdown`, so Open With in the file manager works.
