@@ -6,7 +6,7 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "author": "Jo <21996000+jom4337@users.noreply.github.com>",
-  "homepage": "https://localhost/parchment",
+  "homepage": "https://github.com/jom4337/parchment",
   "scripts": {
     "build": "node scripts/build.js",
     "tauri:dev": "node scripts/build.js && tauri build --debug --no-bundle",
