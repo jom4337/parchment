@@ -1,0 +1,699 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+/* SPDX-FileCopyrightText: 2026 Jo */
+
+/* Parchment: clean sans-serif reading view with a teal accent.
+ * Themes: light (default), dim (low light, warm, low blue), dark, eink (monochrome, high contrast).
+ * app.js sets data-theme on <html>. "Auto" resolves to light or dark from the system. */
+
+:root {
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --measure: 42rem;
+  --radius: 6px;
+  --body-weight: 400;
+  --border-w: 1px;
+}
+
+/* Light (also the fallback before the script runs) */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #fbfcfc;
+  --surface: #f1f4f4;
+  --inline-bg: #eaefef;
+  --hover: rgba(15, 45, 45, 0.07);
+  --text: #1b2124;
+  --text-2: #39434a;
+  --text-3: #5f6b73;
+  --line: #d6dde0;
+  --line-soft: #e4e9ea;
+  --accent: #0f766e;
+  --accent-hover: #0b5f59;
+  --accent-ink: #ffffff;
+  --link: #0e6b64;
+  --mark: rgba(20, 184, 166, 0.28);
+
+  --tok-comment: #627079;
+  --tok-keyword: #0e6a85;
+  --tok-string: #3f6b0c;
+  --tok-number: #9a4a07;
+  --tok-func: #1d4ed8;
+  --tok-type: #0f6e66;
+  --tok-var: #b4123a;
+  --tok-meta: #6d28d9;
+  --tok-add-bg: rgba(63, 107, 12, 0.12);
+  --tok-del-bg: rgba(180, 18, 58, 0.1);
+}
+
+/* Low light: still a light theme, but warm. Every color keeps blue below red
+ * to cut blue light (like Night Shift). The accent shifts from teal to olive. */
+:root[data-theme="dim"] {
+  color-scheme: light;
+  --bg: #efe1c4;
+  --surface: #e6d5b3;
+  --inline-bg: #e2cfab;
+  --hover: rgba(80, 50, 10, 0.08);
+  --text: #3a2c1b;
+  --text-2: #4a3a26;
+  --text-3: #66523a;
+  --line: #cbb48b;
+  --line-soft: #dbc8a4;
+  --accent: #5c5a14;
+  --accent-hover: #474510;
+  --accent-ink: #f7eedb;
+  --link: #565412;
+  --mark: rgba(196, 136, 24, 0.3);
+
+  --tok-comment: #614d33;
+  --tok-keyword: #8a3a10;
+  --tok-string: #4d5a10;
+  --tok-number: #845400;
+  --tok-func: #6a3818;
+  --tok-type: #5c5a14;
+  --tok-var: #962a24;
+  --tok-meta: #723c48;
+  --tok-add-bg: rgba(77, 90, 16, 0.14);
+  --tok-del-bg: rgba(150, 42, 36, 0.12);
+}
+
+/* Dark */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #14181a;
+  --surface: #1c2225;
+  --inline-bg: #222a2d;
+  --hover: rgba(220, 240, 240, 0.08);
+  --text: #e3e8ea;
+  --text-2: #b8c2c7;
+  --text-3: #8d999f;
+  --line: #2f383c;
+  --line-soft: #242c2f;
+  --accent: #2dd4bf;
+  --accent-hover: #5eead4;
+  --accent-ink: #062925;
+  --link: #5eead4;
+  --mark: rgba(45, 212, 191, 0.3);
+
+  --tok-comment: #8a979e;
+  --tok-keyword: #67e8f9;
+  --tok-string: #a3e635;
+  --tok-number: #fbbf24;
+  --tok-func: #93c5fd;
+  --tok-type: #5eead4;
+  --tok-var: #fda4af;
+  --tok-meta: #c4b5fd;
+  --tok-add-bg: rgba(163, 230, 53, 0.14);
+  --tok-del-bg: rgba(253, 164, 175, 0.14);
+}
+
+/* E-ink: black on white, no color, no translucency, no motion */
+:root[data-theme="eink"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --inline-bg: #ffffff;
+  --hover: transparent;
+  --text: #000000;
+  --text-2: #000000;
+  --text-3: #000000;
+  --line: #000000;
+  --line-soft: #000000;
+  --accent: #000000;
+  --accent-hover: #000000;
+  --accent-ink: #ffffff;
+  --link: #000000;
+  --mark: transparent;
+  --body-weight: 450;
+  --border-w: 1.5px;
+
+  --tok-comment: #000000;
+  --tok-keyword: #000000;
+  --tok-string: #000000;
+  --tok-number: #000000;
+  --tok-func: #000000;
+  --tok-type: #000000;
+  --tok-var: #000000;
+  --tok-meta: #000000;
+  --tok-add-bg: transparent;
+  --tok-del-bg: transparent;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html {
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: var(--body-weight);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- Empty and error states -------------------------------------------- */
+
+.state {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+html:has(#bar:not([hidden])) .state {
+  min-height: calc(100vh - 3rem);
+}
+
+.state h1 {
+  margin: 0;
+  font: 600 1.5rem/1.3 var(--sans);
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.state p {
+  margin: 0 0 1rem;
+  max-width: 32rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-3);
+  overflow-wrap: anywhere;
+}
+
+.btn {
+  padding: 0.6rem 1.1rem;
+  border: var(--border-w) solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: 600 0.875rem/1 var(--sans);
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+#dropzone {
+  position: fixed;
+  inset: 0.75rem;
+  z-index: 10;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--accent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  color: var(--text-2);
+  font: 600 1.15rem/1 var(--sans);
+  pointer-events: none;
+}
+
+body.dragging #dropzone {
+  display: flex;
+}
+
+/* ---- File bar (browser version only) ----------------------------------- */
+
+html:has(#bar:not([hidden])) {
+  scroll-padding-top: 3rem;
+}
+
+#bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2.75rem;
+  padding: 0.3rem 0.5rem 0.3rem 1rem;
+  border-bottom: var(--border-w) solid var(--line-soft);
+  background: var(--bg);
+  color: var(--text-3);
+  font: 500 0.8125rem/1.2 var(--sans);
+}
+
+#bar-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-2);
+}
+
+.bar-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.bar-label {
+  margin-right: 0.25rem;
+}
+
+.bar-select {
+  margin-right: 0.5rem;
+  padding: 0.3rem 0.4rem;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.bar-btn {
+  padding: 0.4rem 0.65rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  cursor: pointer;
+}
+
+.bar-btn:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+/* ---- Document ---------------------------------------------------------- */
+
+.prose {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 3rem 1.5rem 6rem;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--text);
+  overflow-wrap: break-word;
+}
+
+.prose > * {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.prose > * + * {
+  margin-top: 1.1em;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.012em;
+  color: var(--text);
+}
+
+.prose h1 { font-size: 2rem; margin-top: 2.5rem; }
+.prose h2 { font-size: 1.45rem; margin-top: 2.25rem; }
+.prose h3 { font-size: 1.2rem; margin-top: 1.75rem; }
+.prose h4 { font-size: 1.05rem; margin-top: 1.5rem; }
+.prose h5 { font-size: 1rem; margin-top: 1.5rem; }
+.prose h6 {
+  font-size: 0.85rem;
+  margin-top: 1.5rem;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.prose > :first-child { margin-top: 0; }
+
+.prose :is(h1, h2, h3, h4, h5, h6) + :not(:is(h1, h2, h3, h4, h5, h6)) {
+  margin-top: 0.6em;
+}
+
+.prose strong {
+  font-weight: 650;
+}
+
+.prose a {
+  color: var(--link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--link) 40%, transparent);
+  cursor: pointer;
+}
+
+.prose a:hover {
+  text-decoration-color: currentColor;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.6rem;
+}
+
+.prose li + li,
+.prose li > ul,
+.prose li > ol {
+  margin-top: 0.35em;
+}
+
+.prose li::marker {
+  color: var(--text-3);
+}
+
+.prose li > p {
+  margin: 0;
+}
+
+.prose li > p + p {
+  margin-top: 0.5em;
+}
+
+.prose ul.contains-tasks {
+  list-style: none;
+  padding-left: 0.2rem;
+}
+
+.prose li.task > input {
+  margin: 0 0.5rem 0 0;
+  vertical-align: -0.1em;
+  accent-color: var(--accent);
+}
+
+.prose blockquote {
+  padding: 0.1rem 0 0.1rem 1rem;
+  border-left: 3px solid var(--accent);
+  color: var(--text-2);
+}
+
+.prose blockquote > * + * {
+  margin-top: 0.75em;
+}
+
+.prose hr {
+  margin: 2.5rem 0;
+  border: 0;
+  border-top: var(--border-w) solid var(--line);
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+}
+
+.img-missing {
+  color: var(--text-3);
+  font-style: italic;
+}
+
+.prose kbd {
+  padding: 0.05rem 0.4rem;
+  border: var(--border-w) solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--surface);
+  font: 0.85em var(--mono);
+}
+
+.prose mark {
+  background: var(--mark);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 0.15rem;
+}
+
+.prose details {
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.9rem;
+}
+
+.prose details > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.prose details[open] > summary {
+  margin-bottom: 0.5rem;
+}
+
+/* ---- Code -------------------------------------------------------------- */
+
+.prose :not(pre) > code {
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: var(--inline-bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 0.875em;
+  white-space: pre-wrap;
+}
+
+.codeblock {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.codeblock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.4rem 0 0.9rem;
+  color: var(--text-3);
+  font: 600 0.7rem/1 var(--sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.copy {
+  padding: 0.35rem 0.55rem;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.copy:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.copy.done {
+  color: var(--accent);
+}
+
+.codeblock pre {
+  margin: 0;
+  padding: 0.35rem 0.9rem 0.9rem;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  tab-size: 4;
+}
+
+.codeblock pre code {
+  display: block;
+  padding: 0;
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  white-space: pre;
+}
+
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--tok-comment); font-style: italic; }
+.hljs-keyword, .hljs-selector-tag { color: var(--tok-keyword); }
+.hljs-string, .hljs-regexp, .hljs-meta .hljs-string { color: var(--tok-string); }
+.hljs-number, .hljs-literal, .hljs-symbol, .hljs-bullet { color: var(--tok-number); }
+.hljs-title, .hljs-section, .hljs-title.function_ { color: var(--tok-func); }
+.hljs-title.class_, .hljs-built_in, .hljs-type { color: var(--tok-type); }
+.hljs-attr, .hljs-attribute, .hljs-variable, .hljs-template-variable,
+.hljs-selector-id, .hljs-selector-class, .hljs-property { color: var(--tok-var); }
+.hljs-name, .hljs-tag { color: var(--tok-var); }
+.hljs-meta, .hljs-meta .hljs-keyword { color: var(--tok-meta); }
+.hljs-addition { color: var(--tok-string); background: var(--tok-add-bg); }
+.hljs-deletion { color: var(--tok-var); background: var(--tok-del-bg); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 700; }
+
+/* ---- Tables ------------------------------------------------------------ */
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.925rem;
+  line-height: 1.55;
+}
+
+.prose th,
+.prose td {
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: var(--border-w) solid var(--line-soft);
+}
+
+.prose th {
+  font-weight: 650;
+  white-space: nowrap;
+  border-bottom-color: var(--line);
+}
+
+.prose tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.prose [align="center"] { text-align: center; }
+.prose [align="right"] { text-align: right; }
+
+/* ---- E-ink details ----------------------------------------------------- */
+/* Shape and weight replace color. Nothing fades or blurs. */
+
+[data-theme="eink"] *,
+[data-theme="eink"] *::before,
+[data-theme="eink"] *::after {
+  transition: none !important;
+  animation: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+[data-theme="eink"] ::selection {
+  background: #000;
+  color: #fff;
+}
+
+[data-theme="eink"] .prose a {
+  text-decoration-color: #000;
+  text-decoration-thickness: 1.5px;
+}
+
+[data-theme="eink"] .prose a:hover,
+[data-theme="eink"] .bar-btn:hover,
+[data-theme="eink"] .copy:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+[data-theme="eink"] .codeblock,
+[data-theme="eink"] .prose :not(pre) > code {
+  border: var(--border-w) solid #000;
+}
+
+[data-theme="eink"] .codeblock-head {
+  border-bottom: 1px dashed #000;
+  padding-bottom: 0.4rem;
+}
+
+[data-theme="eink"] .codeblock pre {
+  padding-top: 0.6rem;
+}
+
+[data-theme="eink"] .codeblock pre code {
+  color: #000;
+}
+
+[data-theme="eink"] .hljs-keyword,
+[data-theme="eink"] .hljs-selector-tag,
+[data-theme="eink"] .hljs-title,
+[data-theme="eink"] .hljs-section,
+[data-theme="eink"] .hljs-built_in,
+[data-theme="eink"] .hljs-type {
+  font-weight: 700;
+}
+
+[data-theme="eink"] .hljs-addition { text-decoration: underline; }
+[data-theme="eink"] .hljs-deletion { text-decoration: line-through; }
+
+[data-theme="eink"] .prose mark {
+  outline: 1.5px solid #000;
+  font-weight: 650;
+}
+
+/* Disabled checkboxes draw faded. Draw solid boxes instead. */
+[data-theme="eink"] .prose li.task > input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 0.95em;
+  height: 0.95em;
+  border: 1.5px solid #000;
+  border-radius: 2px;
+  background: #fff;
+  color: #000;
+  vertical-align: -0.12em;
+  opacity: 1;
+}
+
+[data-theme="eink"] .prose li.task > input:checked {
+  background: #000;
+}
+
+[data-theme="eink"] .prose img {
+  filter: grayscale(1) contrast(1.1);
+}
+
+[data-theme="eink"] .btn:hover {
+  text-decoration: underline;
+}
+
+[data-theme="eink"] #dropzone {
+  background: #fff;
+  border-color: #000;
+}
+
+[data-theme="eink"] .prose li::marker,
+[data-theme="eink"] .prose h6 {
+  color: #000;
+}
+
+/* ---- Print ------------------------------------------------------------- */
+
+@media print {
+  :root {
+    --bg: #fff;
+    --text: #000;
+  }
+  .copy,
+  #bar {
+    display: none !important;
+  }
+  .prose {
+    max-width: none;
+    padding: 0;
+  }
+}

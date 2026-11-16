@@ -1,0 +1,27 @@
+{
+  "name": "parchment",
+  "productName": "Parchment",
+  "version": "1.2.0",
+  "description": "Local Markdown reader with a warm, serif reading style",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "author": "Jo <21996000+jom4337@users.noreply.github.com>",
+  "homepage": "https://localhost/parchment",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "tauri:dev": "node scripts/build.js && tauri build --debug --no-bundle",
+    "tauri:mac": "node scripts/build.js && tauri build --bundles app,dmg",
+    "tauri:linux": "node scripts/build.js && tauri build --bundles deb,rpm",
+    "tauri:appimage": "node scripts/build.js && tauri build --bundles appimage",
+    "tauri:win": "node scripts/build.js && tauri build --bundles nsis"
+  },
+  "dependencies": {
+    "dompurify": "^3.4.17",
+    "highlight.js": "^11.12.0",
+    "marked": "^18.2.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.12.4",
+    "esbuild": "^0.28.2"
+  }
+}

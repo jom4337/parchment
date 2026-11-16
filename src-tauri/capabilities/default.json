@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Event listening for all Parchment windows. App commands are allowed by default.",
+  "windows": ["*"],
+  "permissions": ["core:event:default"]
+}

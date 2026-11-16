@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="__CSP__">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Parchment</title>
+<!--STYLE-->
+</head>
+<body>
+<div id="empty" class="state">
+  <h1>Open a Markdown file</h1>
+  <p id="hint">Drop a file here.</p>
+  <button id="open-btn" type="button" class="btn">Open file</button>
+</div>
+
+<div id="error" class="state" hidden>
+  <h1>This file did not open</h1>
+  <p id="error-msg"></p>
+  <button id="error-btn" type="button" class="btn">Open another file</button>
+</div>
+
+<header id="bar" hidden>
+  <span id="bar-name"></span>
+  <span class="bar-actions">
+    <label class="bar-label" for="theme">Theme</label>
+    <select id="theme" class="bar-select">
+      <option value="auto">Auto</option>
+      <option value="light">Light</option>
+      <option value="dim">Low light (warm)</option>
+      <option value="dark">Dark</option>
+      <option value="eink">E-ink</option>
+    </select>
+    <button id="bar-open" type="button" class="bar-btn">Open</button>
+    <button id="bar-close" type="button" class="bar-btn">Close</button>
+  </span>
+</header>
+
+<main id="doc" class="prose" hidden></main>
+
+<div id="dropzone" aria-hidden="true"><span>Drop to open</span></div>
+<input id="picker" type="file" accept=".md,.markdown,.mdown,.mkd,.txt,text/markdown,text/plain" hidden>
+<!--SCRIPT-->
+</body>
+</html>
