@@ -35,9 +35,11 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - uses: gradle/actions/setup-gradle@v4
+      # v6 defaults to a commercial cache service; basic is the open-source actions/cache wrapper.
+      - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: 8.10.2
+          cache-provider: basic
 
       - name: Write the release key
         env:
