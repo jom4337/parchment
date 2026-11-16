@@ -45,6 +45,7 @@ struct MenuHandles {
     forward: MenuItem<Wry>,
     system: CheckMenuItem<Wry>,
     light: CheckMenuItem<Wry>,
+    dim: CheckMenuItem<Wry>,
     dark: CheckMenuItem<Wry>,
 }
 
@@ -290,7 +291,8 @@ fn go(app: &AppHandle, label: &str, delta: isize) {
 
 fn theme_value(mode: &str) -> Option<Theme> {
     match mode {
-        "light" => Some(Theme::Light),
+        // Low light is a warm light theme, so the native window stays light.
+        "light" | "dim" => Some(Theme::Light),
         "dark" => Some(Theme::Dark),
         _ => None,
     }
@@ -463,7 +465,7 @@ fn load_theme(app: &AppHandle) -> String {
         .and_then(|p| fs::read_to_string(p).ok())
         .and_then(|s| serde_json::from_str::<Value>(&s).ok())
         .and_then(|v| v.get("theme").and_then(|t| t.as_str()).map(String::from))
-        .filter(|t| ["system", "light", "dark"].contains(&t.as_str()))
+        .filter(|t| ["system", "light", "dim", "dark"].contains(&t.as_str()))
         .unwrap_or_else(|| "system".into())
 }
 
@@ -503,6 +505,7 @@ fn build_menu(app: &AppHandle, theme: &str) -> tauri::Result<(Menu<Wry>, MenuHan
     let forward = MenuItem::with_id(app, "forward", "Forward", false, Some("CmdOrCtrl+BracketRight"))?;
     let system = CheckMenuItem::with_id(app, "theme-system", "Match System", true, theme == "system", None::<&str>)?;
     let light = CheckMenuItem::with_id(app, "theme-light", "Light", true, theme == "light", None::<&str>)?;
+    let dim = CheckMenuItem::with_id(app, "theme-dim", "Low Light", true, theme == "dim", None::<&str>)?;
     let dark = CheckMenuItem::with_id(app, "theme-dark", "Dark", true, theme == "dark", None::<&str>)?;
     let zoom_reset = MenuItem::with_id(app, "zoom-reset", "Actual Size", true, Some("CmdOrCtrl+Digit0"))?;
     let zoom_in = MenuItem::with_id(app, "zoom-in", "Zoom In", true, Some("CmdOrCtrl+Equal"))?;
@@ -518,7 +521,7 @@ fn build_menu(app: &AppHandle, theme: &str) -> tauri::Result<(Menu<Wry>, MenuHan
     let copy = PredefinedMenuItem::copy(app, None)?;
     let select_all = PredefinedMenuItem::select_all(app, None)?;
     let edit = Submenu::with_items(app, "Edit", true, &[&copy, &select_all])?;
-    let appearance = Submenu::with_items(app, "Appearance", true, &[&system, &light, &dark])?;
+    let appearance = Submenu::with_items(app, "Appearance", true, &[&system, &light, &dim, &dark])?;
     let (v1, v2) = (sep()?, sep()?);
     let view = Submenu::with_items(
         app,
@@ -567,7 +570,7 @@ fn build_menu(app: &AppHandle, theme: &str) -> tauri::Result<(Menu<Wry>, MenuHan
         menu.append(&window_menu)?;
     }
     let _ = (&s3, &quit, &s4);
-    Ok((menu, MenuHandles { reload, back, forward, system, light, dark }))
+    Ok((menu, MenuHandles { reload, back, forward, system, light, dim, dark }))
 }
 
 fn refresh_menu(app: &AppHandle) {
@@ -593,6 +596,7 @@ fn refresh_menu(app: &AppHandle) {
         let _ = m.forward.set_enabled(can_fwd);
         let _ = m.system.set_checked(theme == "system");
         let _ = m.light.set_checked(theme == "light");
+        let _ = m.dim.set_checked(theme == "dim");
         let _ = m.dark.set_checked(theme == "dark");
     }
 }
@@ -620,6 +624,7 @@ fn on_menu(app: &AppHandle, id: &str) {
         }
         "theme-system" => set_theme(app, "system"),
         "theme-light" => set_theme(app, "light"),
+        "theme-dim" => set_theme(app, "dim"),
         "theme-dark" => set_theme(app, "dark"),
         "zoom-reset" | "zoom-in" | "zoom-out" => {
             let (Some(l), Some(w)) = (active, win) else { return };
