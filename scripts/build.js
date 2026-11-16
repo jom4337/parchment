@@ -17,6 +17,25 @@ const src = path.join(root, 'src');
 const distDir = path.join(root, 'dist');
 const tauriDir = path.join(root, 'renderer-tauri');
 
+// Full license text of each npm package in a bundle. Fails if a package has no license file.
+function thirdPartyNotices(metafile) {
+  const pkgs = new Map();
+  for (const input of Object.keys(metafile.inputs)) {
+    const m = input.replace(/\\/g, '/').match(/^(.*node_modules\/((?:@[^/]+\/)?[^/]+))\//);
+    if (m) pkgs.set(m[2], path.resolve(m[1]));
+  }
+  const parts = [...pkgs.keys()].sort().map((name) => {
+    const dir = pkgs.get(name);
+    const pj = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8'));
+    const file = fs.readdirSync(dir).find((f) => /^(licen[cs]e|copying)/i.test(f));
+    if (!file) throw new Error(`No license file in ${dir}`);
+    const text = fs.readFileSync(path.join(dir, file), 'utf8').trim();
+    return `== ${pj.name} ${pj.version}, license ${pj.license} ==\n\n${text}`;
+  });
+  const body = `Third-party software in this file:\n\n${parts.join('\n\n')}`;
+  return `\n<!--\n${body.replace(/--!?>/g, (s) => s.replace('>', '&gt;'))}\n-->\n`;
+}
+
 const sha256 = (text) => `'sha256-${crypto.createHash('sha256').update(text, 'utf8').digest('base64')}'`;
 
 async function main() {
@@ -30,6 +49,7 @@ async function main() {
     format: 'iife',
     target: ['chrome120', 'safari16'],
     legalComments: 'none',
+    metafile: true,
     write: false,
   });
   const script = js.outputFiles[0].text;
@@ -58,7 +78,8 @@ async function main() {
     template
       .replace('__CSP__', standaloneCsp)
       .replace('<!--STYLE-->', () => `<style>${style}</style>`)
-      .replace('<!--SCRIPT-->', () => `<script>${inlineScript}</script>`),
+      .replace('<!--SCRIPT-->', () => `<script>${inlineScript}</script>`)
+      + thirdPartyNotices(js.metafile),
   );
 
   // Tauri build: same page, Tauri bridge. Tauri adds the CSP (src-tauri/tauri.conf.json).

@@ -1,6 +1,6 @@
 [package]
 name = "parchment"
-version = "1.2.0"
+version = "1.2.1"
 description = "Local Markdown reader"
 edition = "2021"
 rust-version = "1.80"
