@@ -1,0 +1,84 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-FileCopyrightText: 2026 Jo
+
+import groovy.json.JsonSlurper
+
+plugins {
+    id 'com.android.application'
+}
+
+// Version from package.json, like the other builds. 1.2.3 -> versionCode 10203.
+def pkg = new JsonSlurper().parse(file("$rootDir/../package.json"))
+def parts = pkg.version.tokenize('.-+')
+if (parts.size() < 3 || !(parts[0..2].every { it.isInteger() })) {
+    throw new GradleException("package.json version must start with MAJOR.MINOR.PATCH: ${pkg.version}")
+}
+def (major, minor, patch) = parts[0..2]*.toInteger()
+
+// The page is the standalone build. Run `npm run build` first.
+def pageFile = file("$rootDir/../dist/parchment.html")
+def pageDir = layout.buildDirectory.dir('generated/page')
+
+android {
+    namespace 'local.parchment.reader'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'local.parchment.reader'
+        minSdk 26
+        targetSdk 35
+        versionCode major * 10000 + minor * 100 + patch
+        versionName pkg.version
+    }
+
+    // Release key from the environment. The workflow sets these from GitHub secrets.
+    signingConfigs {
+        release {
+            def ks = System.getenv('PARCHMENT_KEYSTORE')
+            if (ks) {
+                storeFile file(ks)
+                storePassword System.getenv('PARCHMENT_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('PARCHMENT_KEY_ALIAS') ?: 'parchment'
+                keyPassword System.getenv('PARCHMENT_KEY_PASSWORD') ?: System.getenv('PARCHMENT_KEYSTORE_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    sourceSets {
+        main {
+            assets.srcDirs += [pageDir]
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+tasks.register('copyPage', Copy) {
+    doFirst {
+        if (!pageFile.exists()) {
+            throw new GradleException("Missing ${pageFile}. Run `npm run build` in the repo root first.")
+        }
+    }
+    from pageFile
+    into pageDir
+}
+
+tasks.named('preBuild') { dependsOn 'copyPage' }
+
+// Never build an unsigned release by mistake.
+gradle.taskGraph.whenReady { graph ->
+    def wantsRelease = graph.allTasks.any { it.path.endsWith('Release') && it.project == project }
+    if (wantsRelease && !System.getenv('PARCHMENT_KEYSTORE')) {
+        throw new GradleException('Release build needs PARCHMENT_KEYSTORE and PARCHMENT_KEYSTORE_PASSWORD. Use assembleDebug for a test build.')
+    }
+}

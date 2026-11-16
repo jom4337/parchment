@@ -65,13 +65,38 @@ The window title shows the file name. Each file opens in an empty window or in a
 | Images | Images with a relative path load from the file folder. |
 | Code blocks | A language label and a Copy button show on each block. Syntax color is on for about 40 languages. |
 | Front matter | YAML front matter shows as a code block. |
-| Themes | Light, Low light (a warm light theme for low light: every color keeps blue below red to cut blue light, and the accent is olive), Dark, and E-ink (black on white, no color: bold and borders replace color). Auto follows the system light or dark setting. In the browser version, use the Theme control in the top bar. In the apps, View > Appearance offers System, Light, and Dark. The choice persists. |
+| Themes | Light, Low light (a warm light theme for low light: every color keeps blue below red to cut blue light, and the accent is olive), Dark, and E-ink (black on white, no color: bold and borders replace color). Auto follows the system light or dark setting. In the browser version and on Android, the Theme control in the top bar offers all five. In the desktop apps, View > Appearance offers System, Light, Low Light, and Dark. The choice persists. |
 | Zoom | `Cmd+=`, `Cmd+-`, and `Cmd+0`. |
 | Safety | Raw HTML in a file is cleaned before display. Scripts, styles, and forms are removed. The page has a strict content security policy. |
 
 ## Browser version
 
 `npm run build` writes `dist/parchment.html`. Open it in any browser, then choose a file or drop one on the page. The top bar has Theme, Open, and Close. `Cmd+O` on macOS or `Ctrl+O` on other systems also opens a file; the page detects the OS to show the right shortcut. It has no live reload. Relative images do not load because the browser does not give the file path.
+
+## Android
+
+The Android app is a small WebView that shows the browser version (`dist/parchment.html`). It has all five themes, including E-ink, in the top bar. It needs Android 8.0 or newer.
+
+- Open a file with Open file, or from a file manager with Open with. Share a `.md` file or text to Parchment from another app.
+- The status and navigation bars take the page color of the theme.
+- The open file stays open after a dark mode switch or a screen rotation.
+- As in the browser version, there is no live reload, and relative images and links to other `.md` files do not work, because Android gives the app a file, not a folder.
+- Some file managers give `.md` files no Markdown type. Then Parchment is not in Open with; use Open file in the app.
+
+### Build the APK
+
+GitHub Actions builds the signed APK: `gh workflow run build-android.yml -f tag=vX.Y.Z`, then `gh run download RUN --dir ../ci-X.Y.Z`. The APK is `Parchment_X.Y.Z.apk`.
+
+The workflow needs two repository secrets, made once from your own release key:
+
+| Secret | Value |
+| --- | --- |
+| `PARCHMENT_KEYSTORE_BASE64` | The keystore file, base64-encoded |
+| `PARCHMENT_KEYSTORE_PASSWORD` | The keystore password |
+
+The key alias is `parchment`. Android accepts an update only if it has the same key as the installed app. Keep a backup of the keystore and its password outside the repository.
+
+A local test build needs the Android SDK, JDK 17, and Gradle 8.9 or newer: `npm run build`, then `gradle -p android :app:assembleDebug`. A debug APK has a different key, so uninstall the release app first.
 
 ## Not included
 
@@ -89,6 +114,8 @@ The window title shows the file name. Each file opens in an empty window or in a
 | `src/tauri-bridge.js` | Connects the page to the Tauri main process |
 | `src-tauri/src/main.rs` | Tauri main process: windows, menus, file access, live reload |
 | `src-tauri/tauri.conf.json` | Tauri settings: CSP, file associations, bundles |
+| `android/` | Android app: `MainActivity.java` (WebView, Open with, Share, file picker), manifest, Gradle build |
+| `.github/workflows/build-android.yml` | Builds and signs the APK for a tag |
 | `scripts/build.js` | Bundles `src/` into `renderer-tauri/` (Tauri) and `dist/parchment.html` |
 
 ## Fonts

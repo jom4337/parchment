@@ -5,6 +5,8 @@ import { renderMarkdown } from './render.js';
 
 // `api` exists in the Tauri app (see tauri-bridge.js). It is null in a plain browser.
 const api = window.parchment || null;
+// `android` exists in the Android app (android/.../MainActivity.java). It uses the browser build.
+const android = (!api && window.ParchmentAndroid) || null;
 const MAX_BYTES = 10 * 1024 * 1024;
 
 const $ = (id) => document.getElementById(id);
@@ -46,6 +48,11 @@ function applyTheme(choice) {
   const resolved = themeChoice === 'auto' ? (darkQuery.matches ? 'dark' : 'light') : themeChoice;
   document.documentElement.dataset.theme = resolved;
   $('theme').value = themeChoice;
+  // Match the Android status and navigation bars to the page.
+  if (android) {
+    const bg = getComputedStyle(document.body).backgroundColor;
+    android.setChrome(bg, resolved !== 'dark');
+  }
 }
 
 darkQuery.addEventListener('change', () => applyTheme(themeChoice));
@@ -74,6 +81,7 @@ if (api) {
 }
 
 function closeFile() {
+  if (android) android.closed();
   docEl.replaceChildren();
   show('empty');
   document.title = 'Parchment';
@@ -106,6 +114,8 @@ function showFile({ content, name, baseUrl = null, hash = '', reason = 'open' })
     document.title = `${name} - Parchment`;
     $('bar-name').textContent = name;
   }
+  // The Android app keeps a copy, so the file comes back after a dark mode switch.
+  if (android && reason === 'open') android.opened(name, content);
   if (reason === 'reload') window.scrollTo(0, keep);
   else if (!scrollToId(hash)) window.scrollTo(0, 0);
 }
@@ -145,7 +155,9 @@ if (!api) {
   });
 }
 
-$('hint').textContent = `Drop a file here, or press ${isMac ? '⌘O' : 'Ctrl+O'}.`;
+$('hint').textContent = android
+  ? 'Tap Open file, or open a .md file from a file manager.'
+  : `Drop a file here, or press ${isMac ? '⌘O' : 'Ctrl+O'}.`;
 
 show('empty');
 
@@ -188,6 +200,7 @@ window.addEventListener('drop', async (e) => {
 
 async function copyText(text) {
   if (api) return api.copy(text);
+  if (android) return android.copy(text);
   try {
     await navigator.clipboard.writeText(text);
   } catch {
@@ -225,7 +238,8 @@ docEl.addEventListener('click', (e) => {
   } else if (api) {
     api.openLink(href);
   } else if (/^(https?:|mailto:)/i.test(href)) {
-    window.open(href, '_blank', 'noopener,noreferrer');
+    if (android) android.openExternal(href);
+    else window.open(href, '_blank', 'noopener,noreferrer');
   }
 });
 
@@ -235,4 +249,30 @@ if (api) {
   api.onFile(showFile);
   api.onError(showError);
   if (api.onDrag) api.onDrag((on) => document.body.classList.toggle('dragging', Boolean(on)));
+}
+
+// ---- Files from the Android app ------------------------------------------
+// The app holds a file from Open with, Share, or a restart. The page asks for it
+// at start and each time the app comes to the front. No script injection is needed.
+
+function pullAndroid() {
+  let raw = '';
+  try {
+    raw = android.takePending();
+  } catch {
+    return;
+  }
+  if (!raw) return;
+  const doc = JSON.parse(raw);
+  if (doc.error) showError(doc.error);
+  else showFile({ content: doc.text, name: doc.name, reason: doc.restore ? 'restore' : 'open' });
+}
+
+if (android) {
+  window.parchmentAndroidPull = pullAndroid;
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') pullAndroid();
+  });
+  window.addEventListener('focus', pullAndroid);
+  pullAndroid();
 }

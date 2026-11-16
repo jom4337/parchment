@@ -1,0 +1,7 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-FileCopyrightText: 2026 Jo
+
+// Android Gradle Plugin 8.7 needs Gradle 8.9 or newer and JDK 17.
+plugins {
+    id 'com.android.application' version '8.7.3' apply false
+}
