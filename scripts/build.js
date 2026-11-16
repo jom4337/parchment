@@ -63,6 +63,14 @@ async function main() {
 
   const template = fs.readFileSync(path.join(src, 'index.html'), 'utf8');
 
+  // Version comment for the standalone file, from package.json.
+  const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+  if (!/^[0-9A-Za-z.+-]+$/.test(pkg.version) || pkg.version.includes('--')) {
+    throw new Error(`Version not safe for an HTML comment: ${pkg.version}`);
+  }
+  const versionComment = `<!-- Parchment ${pkg.version} | ${pkg.license} | ${pkg.homepage} -->`;
+  if (!/<!doctype html>/i.test(template)) throw new Error('No <!doctype html> in src/index.html');
+
   // Standalone build: everything inline. CSP allows only these exact blocks.
   const inlineScript = script.replace(/<\/script/gi, '<\\/script');
   const standaloneCsp = [
@@ -76,6 +84,7 @@ async function main() {
   fs.writeFileSync(
     path.join(distDir, 'parchment.html'),
     template
+      .replace(/<!doctype html>/i, (d) => `${d}\n${versionComment}`)
       .replace('__CSP__', standaloneCsp)
       .replace('<!--STYLE-->', () => `<style>${style}</style>`)
       .replace('<!--SCRIPT-->', () => `<script>${inlineScript}</script>`)
