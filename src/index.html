@@ -22,6 +22,7 @@
   <button id="error-btn" type="button" class="btn">Open another file</button>
 </div>
 
+<div id="top">
 <header id="bar" hidden>
   <span id="bar-name"></span>
   <span class="bar-actions">
@@ -33,10 +34,21 @@
       <option value="dark">Dark</option>
       <option value="eink">E-ink</option>
     </select>
+    <button id="bar-find" type="button" class="bar-btn" hidden>Find</button>
     <button id="bar-open" type="button" class="bar-btn">Open</button>
     <button id="bar-close" type="button" class="bar-btn">Close</button>
   </span>
 </header>
+
+<div id="find" role="search" hidden>
+  <input id="find-input" type="text" aria-label="Find in document" placeholder="Find" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+  <span id="find-count" role="status"></span>
+  <button id="find-case" type="button" class="find-btn" aria-pressed="false" aria-label="Match case" title="Match case">Aa</button>
+  <button id="find-prev" type="button" class="find-btn" aria-label="Previous match" title="Previous match">&uarr;</button>
+  <button id="find-next" type="button" class="find-btn" aria-label="Next match" title="Next match">&darr;</button>
+  <button id="find-close" type="button" class="find-btn" aria-label="Close find" title="Close find">&times;</button>
+</div>
+</div>
 
 <main id="doc" class="prose" hidden></main>
 

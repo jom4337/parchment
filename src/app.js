@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // SPDX-FileCopyrightText: 2026 Jo
 
+import { createFind } from './find.js';
 import { renderMarkdown } from './render.js';
 
 // `api` exists in the Tauri app (see tauri-bridge.js). It is null in a plain browser.
@@ -24,6 +25,7 @@ function detectMac() {
 const isMac = detectMac();
 
 const bar = $('bar');
+const find = createFind(docEl);
 
 function show(which) {
   docEl.hidden = which !== 'doc';
@@ -32,6 +34,8 @@ function show(which) {
   // The browser version has no menu, so the bar holds Theme, Open, and Close.
   bar.hidden = Boolean(api);
   $('bar-close').hidden = which !== 'doc';
+  $('bar-find').hidden = which !== 'doc';
+  if (which !== 'doc') find.close();
   if (which !== 'doc') $('bar-name').textContent = '';
 }
 
@@ -118,6 +122,7 @@ function showFile({ content, name, baseUrl = null, hash = '', reason = 'open' })
   if (android && reason === 'open') android.opened(name, content);
   if (reason === 'reload') window.scrollTo(0, keep);
   else if (!scrollToId(hash)) window.scrollTo(0, 0);
+  find.refresh(reason === 'reload');
 }
 
 // ---- Opening files -------------------------------------------------------
@@ -144,6 +149,7 @@ picker.addEventListener('change', async () => {
 
 $('bar-open').addEventListener('click', openDialog);
 $('bar-close').addEventListener('click', closeFile);
+$('bar-find').addEventListener('click', find.open);
 
 if (!api) {
   // The desktop apps handle this shortcut in their menus.
@@ -248,6 +254,7 @@ docEl.addEventListener('click', (e) => {
 if (api) {
   api.onFile(showFile);
   api.onError(showError);
+  api.onFind((action) => find[action] && find[action]());
   if (api.onDrag) api.onDrag((on) => document.body.classList.toggle('dragging', Boolean(on)));
 }
 
