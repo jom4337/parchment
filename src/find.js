@@ -86,6 +86,15 @@ export function createFind(docEl) {
   const caseBtn = $('find-case');
   const canHighlight = typeof Highlight === 'function' && Boolean(window.CSS && CSS.highlights);
 
+  // One pair of highlights for the life of the page.
+  const allMarks = canHighlight ? new Highlight() : null;
+  const nowMark = canHighlight ? new Highlight() : null;
+  if (canHighlight) {
+    nowMark.priority = 1;
+    CSS.highlights.set('find', allMarks);
+    CSS.highlights.set('find-current', nowMark);
+  }
+
   let index = null;
   let matches = []; // {start, end, range}
   let capped = false;
@@ -99,8 +108,8 @@ export function createFind(docEl) {
 
   function clearMarks() {
     if (canHighlight) {
-      CSS.highlights.delete('find');
-      CSS.highlights.delete('find-current');
+      allMarks.clear();
+      nowMark.clear();
     }
     if (boxes) boxes.replaceChildren();
   }
@@ -122,17 +131,13 @@ export function createFind(docEl) {
 
   function drawCurrent() {
     if (!canHighlight) return drawBoxes();
-    if (current < 0) return CSS.highlights.delete('find-current');
-    const h = new Highlight(matches[current].range);
-    h.priority = 1;
-    CSS.highlights.set('find-current', h);
+    nowMark.clear();
+    if (current >= 0) nowMark.add(matches[current].range);
   }
 
   function drawAll() {
     if (canHighlight) {
-      const h = new Highlight();
-      for (const m of matches) h.add(m.range);
-      CSS.highlights.set('find', h);
+      for (const m of matches) allMarks.add(m.range);
     }
     drawCurrent();
   }
