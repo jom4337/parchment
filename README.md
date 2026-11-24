@@ -66,12 +66,13 @@ The window title shows the file name. Each file opens in an empty window or in a
 | Code blocks | A language label and a Copy button show on each block. Syntax color is on for about 40 languages. |
 | Front matter | YAML front matter shows as a code block. |
 | Themes | Light, Low light (a warm light theme for low light: every color keeps blue below red to cut blue light, and the accent is olive), Dark, and E-ink (black on white, no color: bold and borders replace color). Auto follows the system light or dark setting. In the browser version and on Android, the Theme control in the top bar offers all five. In the desktop apps, View > Appearance offers System, Light, Low Light, and Dark. The choice persists. |
+| Find | `Cmd+F` opens find. `Enter` or `Cmd+G` goes to the next match, and `Shift+Enter` or `Cmd+Shift+G` to the previous one. `Esc` closes find. It searches text and code blocks, ignores case unless Match case (Aa) is on, opens collapsed sections, and scrolls wide code and tables to the match. It marks up to 10,000 matches. Use `Ctrl` on Windows and Linux. |
 | Zoom | `Cmd+=`, `Cmd+-`, and `Cmd+0`. |
 | Safety | Raw HTML in a file is cleaned before display. Scripts, styles, and forms are removed. The page has a strict content security policy. |
 
 ## Browser version
 
-`npm run build` writes `dist/parchment.html`. Open it in any browser, then choose a file or drop one on the page. The top bar has Theme, Open, and Close. `Cmd+O` on macOS or `Ctrl+O` on other systems also opens a file; the page detects the OS to show the right shortcut. It has no live reload. Relative images do not load because the browser does not give the file path.
+`npm run build` writes `dist/parchment.html`. Open it in any browser, then choose a file or drop one on the page. The top bar has Theme, Find, Open, and Close. `Cmd+F` opens find; a second `Cmd+F` opens the browser's own find. `Cmd+O` on macOS or `Ctrl+O` on other systems also opens a file; the page detects the OS to show the right shortcut. It has no live reload. Relative images do not load because the browser does not give the file path.
 
 ## Android
 
@@ -100,7 +101,6 @@ A local test build needs the Android SDK, JDK 17, and Gradle 8.9 or newer: `npm 
 
 ## Not included
 
-- Find in page (`Cmd+F`)
 - Math, Mermaid diagrams, and footnotes
 - Files larger than 10 MB
 
@@ -111,6 +111,7 @@ A local test build needs the Android SDK, JDK 17, and Gradle 8.9 or newer: `npm 
 | `src/render.js` | Markdown to safe HTML |
 | `src/styles.css` | All visual style |
 | `src/app.js` | Page behavior: drop, links, copy |
+| `src/find.js` | Find in the document |
 | `src/tauri-bridge.js` | Connects the page to the Tauri main process |
 | `src-tauri/src/main.rs` | Tauri main process: windows, menus, file access, live reload |
 | `src-tauri/tauri.conf.json` | Tauri settings: CSP, file associations, bundles |

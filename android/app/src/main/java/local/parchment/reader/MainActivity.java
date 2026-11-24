@@ -339,7 +339,8 @@ public class MainActivity extends Activity {
         root.setOnApplyWindowInsetsListener((v, insets) -> {
             if (Build.VERSION.SDK_INT >= 30) {
                 android.graphics.Insets i = insets.getInsets(
-                        WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
+                        WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout()
+                                | WindowInsets.Type.ime()); // keep matches above the keyboard
                 v.setPadding(i.left, i.top, i.right, i.bottom);
                 return WindowInsets.CONSUMED;
             }

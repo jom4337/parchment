@@ -32,6 +32,10 @@
   --accent-ink: #ffffff;
   --link: #0e6b64;
   --mark: rgba(20, 184, 166, 0.28);
+  --find-bg: #ffe08a;
+  --find-ink: #1b2124;
+  --find-now-bg: #0f766e;
+  --find-now-ink: #ffffff;
 
   --tok-comment: #627079;
   --tok-keyword: #0e6a85;
@@ -63,6 +67,10 @@
   --accent-ink: #f7eedb;
   --link: #565412;
   --mark: rgba(196, 136, 24, 0.3);
+  --find-bg: #dba63c;
+  --find-ink: #2c2010;
+  --find-now-bg: #5c5a14;
+  --find-now-ink: #f7eedb;
 
   --tok-comment: #614d33;
   --tok-keyword: #8a3a10;
@@ -93,6 +101,10 @@
   --accent-ink: #062925;
   --link: #5eead4;
   --mark: rgba(45, 212, 191, 0.3);
+  --find-bg: #5b4a12;
+  --find-ink: #fff3c4;
+  --find-now-bg: #2dd4bf;
+  --find-now-ink: #062925;
 
   --tok-comment: #8a979e;
   --tok-keyword: #67e8f9;
@@ -123,6 +135,10 @@
   --accent-ink: #ffffff;
   --link: #000000;
   --mark: transparent;
+  --find-bg: #ffffff;
+  --find-ink: #000000;
+  --find-now-bg: #000000;
+  --find-now-ink: #ffffff;
   --body-weight: 450;
   --border-w: 1.5px;
 
@@ -242,10 +258,13 @@ html:has(#bar:not([hidden])) {
   scroll-padding-top: 3rem;
 }
 
-#bar {
+#top {
   position: sticky;
   top: 0;
   z-index: 5;
+}
+
+#bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -301,6 +320,129 @@ html:has(#bar:not([hidden])) {
 .bar-btn:hover {
   background: var(--hover);
   color: var(--text);
+}
+
+/* ---- Find --------------------------------------------------------------- */
+
+#find {
+  position: absolute;
+  top: 100%;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  width: 26rem;
+  max-width: calc(100vw - 2rem);
+  margin-top: 0.5rem;
+  padding: 0.3rem;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  color: var(--text-3);
+  font: 500 0.8125rem/1.2 var(--sans);
+}
+
+#find-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.4rem 0.5rem;
+  border: var(--border-w) solid var(--line);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  font: 400 0.875rem/1.2 var(--sans);
+}
+
+#find-input:focus-visible {
+  outline-offset: -1px;
+}
+
+#find-count {
+  flex: none;
+  min-width: 4.5rem;
+  padding: 0 0.4rem;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+#find.none #find-count {
+  color: var(--text);
+  font-weight: 650;
+}
+
+.find-btn {
+  flex: none;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.35rem;
+  border: var(--border-w) solid transparent;
+  border-radius: 4px;
+  background: none;
+  color: var(--text-2);
+  font: 500 0.9rem/1 var(--sans);
+  cursor: pointer;
+}
+
+.find-btn:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.find-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.find-btn[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+::highlight(find) {
+  background-color: var(--find-bg);
+  color: var(--find-ink);
+}
+
+::highlight(find-current) {
+  background-color: var(--find-now-bg);
+  color: var(--find-now-ink);
+}
+
+/* For engines without the Custom Highlight API. */
+.find-box {
+  position: absolute;
+  z-index: 1;
+  border-radius: 2px;
+  outline: 2px solid var(--find-now-bg);
+  background: color-mix(in srgb, var(--find-now-bg) 20%, transparent);
+  pointer-events: none;
+}
+
+@media (max-width: 32rem) {
+  .bar-label {
+    display: none;
+  }
+  #bar {
+    gap: 0.5rem;
+    padding-left: 0.75rem;
+  }
+  .bar-select {
+    max-width: 5.5rem;
+    margin-right: 0.1rem;
+  }
+  .bar-btn {
+    padding: 0.4rem 0.45rem;
+  }
+  #find {
+    right: 0.5rem;
+    max-width: calc(100vw - 1rem);
+  }
+  #find-count {
+    min-width: 0;
+  }
 }
 
 /* ---- Document ---------------------------------------------------------- */
@@ -667,6 +809,15 @@ html:has(#bar:not([hidden])) {
   filter: grayscale(1) contrast(1.1);
 }
 
+[data-theme="eink"] ::highlight(find) {
+  text-decoration: underline double 2px #000;
+}
+
+[data-theme="eink"] .find-btn:disabled {
+  opacity: 1;
+  text-decoration: line-through;
+}
+
 [data-theme="eink"] .btn:hover {
   text-decoration: underline;
 }
@@ -689,6 +840,8 @@ html:has(#bar:not([hidden])) {
     --text: #000;
   }
   .copy,
+  #find,
+  #find-boxes,
   #bar {
     display: none !important;
   }

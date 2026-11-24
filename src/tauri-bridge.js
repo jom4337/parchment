@@ -23,6 +23,7 @@ window.parchment = {
   platform,
   onFile: (cb) => on('file', cb),
   onError: (cb) => on('file-error', cb),
+  onFind: (cb) => on('find', cb),
   onDrag: (cb) => on('drag', cb),
   openDialog: () => invoke('open_dialog'),
   openDropped: (paths) => invoke('open_dropped', { paths }),

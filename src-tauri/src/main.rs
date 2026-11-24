@@ -41,6 +41,7 @@ struct Win {
 #[derive(Clone)]
 struct MenuHandles {
     reload: MenuItem<Wry>,
+    find: [MenuItem<Wry>; 3],
     back: MenuItem<Wry>,
     forward: MenuItem<Wry>,
     system: CheckMenuItem<Wry>,
@@ -520,7 +521,21 @@ fn build_menu(app: &AppHandle, theme: &str) -> tauri::Result<(Menu<Wry>, MenuHan
     let file = Submenu::with_items(app, "File", true, &file_items)?;
     let copy = PredefinedMenuItem::copy(app, None)?;
     let select_all = PredefinedMenuItem::select_all(app, None)?;
-    let edit = Submenu::with_items(app, "Edit", true, &[&copy, &select_all])?;
+    let find = MenuItem::with_id(app, "find", "Find\u{2026}", false, Some("CmdOrCtrl+F"))?;
+    let find_next = MenuItem::with_id(app, "find-next", "Find Next", false, Some("CmdOrCtrl+G"))?;
+    let find_prev = MenuItem::with_id(app, "find-previous", "Find Previous", false, Some("CmdOrCtrl+Shift+G"))?;
+    let (e1, e2) = (sep()?, sep()?);
+    let mut edit_items: Vec<&dyn IsMenuItem<Wry>> = vec![&copy, &select_all, &e2, &find, &find_next, &find_prev];
+    // The find field needs these on macOS, where the menu supplies the shortcuts.
+    let undo = PredefinedMenuItem::undo(app, None)?;
+    let redo = PredefinedMenuItem::redo(app, None)?;
+    let cut = PredefinedMenuItem::cut(app, None)?;
+    let paste = PredefinedMenuItem::paste(app, None)?;
+    if IS_MAC {
+        edit_items.insert(1, &paste);
+        edit_items.splice(0..0, [&undo as &dyn IsMenuItem<Wry>, &redo, &e1, &cut]);
+    }
+    let edit = Submenu::with_items(app, "Edit", true, &edit_items)?;
     let appearance = Submenu::with_items(app, "Appearance", true, &[&system, &light, &dim, &dark])?;
     let (v1, v2) = (sep()?, sep()?);
     let view = Submenu::with_items(
@@ -570,7 +585,7 @@ fn build_menu(app: &AppHandle, theme: &str) -> tauri::Result<(Menu<Wry>, MenuHan
         menu.append(&window_menu)?;
     }
     let _ = (&s3, &quit, &s4);
-    Ok((menu, MenuHandles { reload, back, forward, system, light, dim, dark }))
+    Ok((menu, MenuHandles { reload, find: [find, find_next, find_prev], back, forward, system, light, dim, dark }))
 }
 
 fn refresh_menu(app: &AppHandle) {
@@ -592,6 +607,9 @@ fn refresh_menu(app: &AppHandle) {
     let menu = st.menu.lock().unwrap().clone();
     if let Some(m) = menu {
         let _ = m.reload.set_enabled(has_file);
+        for item in &m.find {
+            let _ = item.set_enabled(has_file);
+        }
         let _ = m.back.set_enabled(can_back);
         let _ = m.forward.set_enabled(can_fwd);
         let _ = m.system.set_checked(theme == "system");
@@ -620,6 +638,16 @@ fn on_menu(app: &AppHandle, id: &str) {
             if let Some(l) = active {
                 let delta = if id == "back" { -1 } else { 1 };
                 spawn(app, move |app| go(&app, &l, delta));
+            }
+        }
+        "find" | "find-next" | "find-previous" => {
+            if let Some(l) = active {
+                let action = match id {
+                    "find-next" => "next",
+                    "find-previous" => "previous",
+                    _ => "open",
+                };
+                send(app, &l, "find", json!(action));
             }
         }
         "theme-system" => set_theme(app, "system"),
